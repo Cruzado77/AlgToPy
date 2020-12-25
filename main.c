@@ -14,9 +14,10 @@ int saida_arquivo(texto text);
 // MAIN
 int main()
 {
+               char temp[BUFFER],sys_temp[FILE_BUFFER+BUFFER];
     printf ("Localidade corrente: %s\n", setlocale(LC_ALL,NULL) );
     printf("A localidade corrente agora é %s \n",setlocale(LC_ALL,""));
-    int option,quit = 0,erro_sys;
+    int option,quit = 0;
 
     do{
                //system("cls");
@@ -28,22 +29,16 @@ int main()
                               break;
                case 2:
                               seleciona_arquivo();
+                              if(!arq)break;
                               engine(entrada_arquivo,saida_console);
                               fclose(arq);
-
-                              system("cls");
-
-                              if(erro_sys = system("py teste.py"))
-                              {
-                                             printf("Chamada Python Shell retorna erro (valor %d)",erro_sys);
-                              }
-                              printf("\n");
-                              system("pause");
+                              save_as();
                               break;
                case 3:
                               printf("\nDesenvolvido por Raphael Sena (Cruzado77)\nAracaju-SE, dezembro de 2020\n");
                               system("pause");
                               break;
+
                case 4:
                               quit = 1;
                               break;

@@ -23,9 +23,11 @@
 #define DIR_ERROR               -104
 #define SYNTAX_ERROR      -105
 
-//globais////////////////////////////
+#define EXIT                               -200
 
-int identacao = 0;
+//globais////////////////////////////
+extern int valor_variaveis;
+unsigned int identacao = 0;
 
 int delta_identacao = 10;
 
@@ -160,6 +162,8 @@ static int traduz (texto  str,char *espaco_futuro, char *espaco_anterior);
 
 int desaloca_texto(texto text);
 
+int salva_arquivo (texto text,const char *dest, const char *mode);
+
 char *retorna_argumento (const char *str);
 //FUNÇÕES/////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
@@ -186,16 +190,11 @@ int engine (int  (*entrada)  (char *str),int  (*saida)  (texto text))
 
                do{
 
-                              //snprintf(text,BUFFER,"%s%s%s\n\0",text,espaco_anterior,py_line);
+                              // Controla linha, junta linha de comando traduzia py_line ao espaço identado
 
-                              //             Memória de texto
-                              /*linha++;                                                   //proxima linha
-                              text = (char*) realloc(text,sizeof(char[BUFFER]) * (linha+1));
-                              if(!text) exibe_erro(MALLOC_ERROR);
-*/
-                              //system("cls");
                               snprintf(text[linha-1],BUFFER,"%s%s\n",espaco_anterior,py_line);
-                              //exibe_texto(text);
+
+
                               (*saida) (text);
                               text = realoca_texto(text,linha+1,sizeof(char[BUFFER]));
 
@@ -206,24 +205,17 @@ int engine (int  (*entrada)  (char *str),int  (*saida)  (texto text))
                               strncpy(espaco_anterior,espacos,BUFFER);
 
                               (*entrada) (command_line);
-                              /*fgets(command_line,BUFFER-1,stdin);
-                              fflush(stdin);
-                              */
+
+
                               if(!tira_linha(command_line)){
                                              strncpy(py_line,command_line,BUFFER);
                                              continue;
                               }
 
-
-                              //printf("command_line = (%s)\n",command_line);
                               retorna_argumento(command_line);
-                              //printf("%s\n",command_line);
 
                               reconhece_string(command_line,banco_strings);
                               strtolower(command_line);
-
-                              //if(strstr(command_line,"="))strtroca(command_line,"="," = ",1);
-
 
 
                               // TOKEN
@@ -234,9 +226,7 @@ int engine (int  (*entrada)  (char *str),int  (*saida)  (texto text))
                               {
                                              strncpy(matrix[i-1],str,BUFFER);
                                              matrix = realoca_texto(matrix,i+1,sizeof(char[BUFFER]));
-                                             //printf("%s\n",matrix[i-1]);
                                              str = strtok(NULL,delimitador);
-                                             //printf("%s\n",str);
                               }
                               i--;
 
@@ -244,8 +234,9 @@ int engine (int  (*entrada)  (char *str),int  (*saida)  (texto text))
                               matrix[i] = NULL;
 
                               i = traduz(matrix,espacos,espaco_anterior);
-                              if(i == -100)quit = 1;
-                              if(i<0 && i != -100)printf("ATENCAO! Expressao indefinida...\n");
+
+                              if(i == EXIT)quit = 1;
+                              if(i<0 && i != -100)printf("<<<< !ATENCAO! Expressao indefinida! >>>>\n");
 
                               if(interrupt)
                               {
@@ -253,14 +244,8 @@ int engine (int  (*entrada)  (char *str),int  (*saida)  (texto text))
                                              strncpy(py_line,"",BUFFER);
                                              continue;
                               }
-                              //restaura_strings(matrix[0],banco_strings);
-                              /*for(register int j = 1; j<i; j++){
-                                             restaura_strings(matrix[j],banco_strings);
-                                             snprintf(matrix[0],BUFFER,"%s %s",matrix[0], matrix[j]);
-                              }
-                              */
+
                               for(register int j = 0; matrix[j]; j++){
-                                             //printf("%s\n",matrix[j]);
                                              restaura_strings(matrix[j],banco_strings);
                                              strncat(matrix[j]," ",BUFFER);
                                              if(j) strncat(matrix[0],matrix[j],BUFFER);
@@ -268,14 +253,14 @@ int engine (int  (*entrada)  (char *str),int  (*saida)  (texto text))
 
                               strncpy(py_line,matrix[0],BUFFER);
 
-                              //printf("(%s)\n",py_line);
-
-                              //             libera espaço alocado
                               desaloca_texto(matrix);
                }while(!quit);
 
                destroi_var(variaveis);
+               valor_variaveis = 0;
+
                destroi_banco_str(banco_strings);
+               strncpy(id_str,"?0?",BUFFER-1);
                desaloca_texto(text);
                identacao = 0;
                return 0;
@@ -339,38 +324,17 @@ static int tabulador(char *str, int valor) {
 	str[i - 1] = '\0';
 	return i;
 }
-/*
-static int verifica_fins(const char *str) {
-	int i, tam;
-	tam = sizeof(fcontent_alg) / sizeof(fcontent_alg[0]);
-	for (i = 0; i < (sizeof(fcontent_alg) / sizeof(fcontent_alg[0])); i++) {
-		if (strstr(str, fcontent_alg[i]))
-			break;
-	}
-	if (i == tam)
-		return 0;
 
-	return i;
-}
-*/
 int strdel(char *str,const char *del)
 {
                 int i,j = 0,iFim,iInicio = 0,encontrado = 0;
                 char saida[BUFFER];
 
-                /*if(!strncmp(str,del,BUFFER)){
-                              strncpy(str,"",BUFFER);
-                              printf("(%s)\n",str);
-                              return 1;
-                }*/
-                //printf("%s - %s\n",str,del);
-                //printf("strlen(str) = %d\n",strlen(str));
                 for (i = 0; i < strlen(str); i++) {
                               if (str[i] == del[j]) {
                                              iInicio = i;
                                              for (j = 0; j < strlen(del); j++) {
                                                             if (del[j] == str[i]) {
-                                                                           //printf("\n%c = %c\n",del[j],str[i]);
                                                                            encontrado = 1;
                                                                            i++;
                                                                            continue;
@@ -391,7 +355,6 @@ int strdel(char *str,const char *del)
                if (!encontrado)
                               return 0;
 
-               //printf("\ndel esta em str\n");
                j = 0;
                for (i = 0; i < (strlen(str)); i++) {
                               if (i != iInicio) {
@@ -411,7 +374,6 @@ int strdel(char *str,const char *del)
                               return 1;
                }
 
-               //printf("\nretornando %d str (%s)\n",iInicio+1,str);
                return iInicio + 1; // evita o 0;
 }
 
@@ -420,13 +382,10 @@ int strtroca(char *str, const char *anterior, const char *nova,int ocorrencias) 
 	int iInicio = 1, i = 0, j = 0,count = 0; // count evita loop infinito
 	char one[BUFFER], two[BUFFER];
 
-               //printf("excluido %s (%d) - %s\n",str,iInicio,anterior);
-
                if(!strncmp(nova,anterior,BUFFER) || !strlen(str))return 0;                 // evita loop infinito
 
                if(!strncmp(str,anterior,BUFFER)){
                               strncpy(str,nova,BUFFER);
-                              //printf("iInicio %s nova %s\n",str,nova);
                               return strlen(str);
                }
 	while (iInicio) {
@@ -442,9 +401,7 @@ int strtroca(char *str, const char *anterior, const char *nova,int ocorrencias) 
 				i++;
 			}
 			two[j] = '\0';
-			//printf("\none = %s,nova = %s, two = %s\n",one,nova,two);
 
-                                             //strncat(str,one,)
 			snprintf(str, BUFFER, "%s%s%s", one, nova, two);
 
                                              count++;
@@ -453,21 +410,13 @@ int strtroca(char *str, const char *anterior, const char *nova,int ocorrencias) 
 
 	}
 
-	//printf("str (%s)\n",str);
 	return i;
 }
 
 static int cria_for(texto argumento) {
-	//char names[][BUFFER] = {"de", "ate", "incremento", "faca"};
 
 	char x[4][BUFFER];
 	int i, j =1;
-
-	// printf("argumento = %s\n",argumento);
-	/*for (i = 0; i < 4; i++) {
-		strtroca(argumento, names[i], " ");
-	}*/
-	// printf("for %s\n",argumento);
 
 	for(i = 0; i<4; i++)
                {
@@ -482,7 +431,6 @@ static int cria_for(texto argumento) {
                               j += 2;
                }
 
-	//sscanf(argumento, "%s %s %s %s", x, y, z, w);
 	snprintf(argumento[1], BUFFER, "%s in range(%s,%s,%s)", x[0], x[1], x[2], x[3]);
 
 	return 1;
@@ -513,22 +461,24 @@ static int traduz (texto  str,char *espaco_futuro, char *espaco_anterior)
                }
 
                if(inicio){
-                              //printf("%s\n",str[0]);
                               if(funcao(str)){
                                              invoke_func = traduz_funcao(str);
                                              if(invoke_func == 2){
+
                                                             p_var = encontra_var(argumento,variaveis);
-                                                            if(!p_var){
+                                                            if(!p_var || strlen(argumento) <= 2){
                                                                            exibe_erro(SYNTAX_ERROR);
                                                                            interrupt = 1;
                                                             }
-                                                            else{
+                                                            else {
                                                                            if(strncmp(p_var->tipo,"str",BUFFER) != 0){
                                                                                           snprintf(str[0],BUFFER,"%s = %s(input())",p_var->nome,p_var->tipo);
                                                                            }
-                                                                           else snprintf(str[0],BUFFER,"%s = input()",p_var->nome,p_var->tipo);
+                                                                           else snprintf(str[0],BUFFER,"%s = input()",p_var->nome);
                                                                            for(j = 1; str[j]; j++)strncpy(str[j],"",BUFFER);
                                                             }
+
+
                                                             return 1;
                                              }
                                              else{
@@ -543,24 +493,19 @@ static int traduz (texto  str,char *espaco_futuro, char *espaco_anterior)
 
                for(i = 0; str[i]; i++)
                {
-                              //printf("%s\n",str[i]);
                               for(j = 0;j<valor_fcontent;j++){
                                              if(!strncmp(str[i],fcontent_alg[j],BUFFER)){
-                                                            //printf("encontrado (%s)!\n",comandos_alg[j]);
                                                             strtroca(str[i],fcontent_alg[j],"",-1);
                                                             tabulador(espaco_futuro,-delta_identacao);
                                                             if(j == 0){
                                                                            strtroca(str[i],fcontent_alg[j],comandos_py[0],-1);
-                                                                           //destroi_var(variaveis);
-                                                                           //free(variaveis);
-                                                                           return -100;
+                                                                           return EXIT;
                                                             }
                                                             contador++;
                                              }
                               }
                               for(j = 0; j<valor_comandos;j++){
                                              if(!strncmp(str[i],comandos_alg[j],BUFFER)){
-                                                            //printf("encontrado (%s)!\n",comandos_alg[j]);
                                                             strtroca(str[i],comandos_alg[j],comandos_py[j],-1);
                                                             if(j == 2){
                                                                            if(!encontra_var(str[1],variaveis)){
@@ -581,38 +526,27 @@ static int traduz (texto  str,char *espaco_futuro, char *espaco_anterior)
                               for(j = 0; j<valor_icontent;j++)
                               {
                                              if(!strncmp(str[i],icontent_alg[j],BUFFER)){
-                                                            //printf("encontrado (%s)!\n",comandos_alg[j]);
                                                             strtroca(str[i],icontent_alg[j],":",-1);
                                                             tabulador(espaco_futuro,delta_identacao);
                                                             contador++;
                                              }
                               }
-                              /*
-                              for(j = 0; j<valor_types; j++)
-                              {
-                                             if(!strncmp(str[i],types_alg[j],BUFFER)){
-                                                            //printf("encontrado (%s)!\n",comandos_alg[j]);
-                                                            strtroca(str[i],icontent_alg[j],":",-1);
-                                             }
-                              }
-                              */
+
                               for(j = 0; j<valor_noeffects; j++)
                               {
                                              if(!i){
                                                             if(!strncmp(str[i],no_effect[j],BUFFER)){
-                                                                           //printf("encontrado (%s)!\n",no_effect[j]);
-                                                                           //strtroca(str[i],no_effect[j],"\n",-1);
                                                                            strncpy(str[i],"",BUFFER);
                                                                            if(j == 0)var_referencia =1;
                                                                            else{
                                                                                           if(j == 1)var_referencia =2;
                                                                                           else{
-                                                                                                         //printf("var_referencia 0\n");
                                                                                                          var_referencia = 0;
                                                                                                          if(j == 2)inicio = 1;
                                                                                                          else{
                                                                                                                         if(j == 3){
-                                                                                                                                       printf("Salvar como? : ");
+                                                                                                                                       strncpy(file_name,"",FILE_BUFFER-1);
+                                                                                                                                       save_as();
                                                                                                                         }
                                                                                                                         if(j == 4){
                                                                                                                                        snprintf(temp,BUFFER,"py %s",TEMP);
@@ -628,8 +562,7 @@ static int traduz (texto  str,char *espaco_futuro, char *espaco_anterior)
 
                               for(j = 0; j<valor_operador; j++)
                               {
-                                             if(strstr(str[i],operador_alg[j])){                                                       //strstr ( o comando pode estar dentro da str)
-                                                            //printf("encontrado (%s) - (%s)!\n",operador_alg[j],operador_py[j]);
+                                             if(strstr(str[i],operador_alg[j])){
                                                             if(var_referencia != 2)
                                                                            strtroca(str[i],operador_alg[j],operador_py[j],-1);
                                                             contador++;
@@ -668,7 +601,6 @@ texto aloca_texto(int linhas, size_t buffer)
                for(i = 0; i<linhas; i++)
                               saida[i] = (char *) malloc(buffer);
                saida[i] = NULL;
-               //printf("alocado!\n");
                return saida;
 }
 
@@ -678,7 +610,6 @@ int desaloca_texto(texto text)
 
                for(i=0; text[i]; i++)
                               free(text[i]);
-               //printf("desalocando\n");
                free(text);
 
                return 0;
@@ -690,66 +621,21 @@ texto realoca_texto(texto p, int linhas, size_t buffer)
                char **saida;
 
                saida = aloca_texto(linhas,buffer);
-               //printf("realocando...\n");
 
                for(i = 0;p[i];i++){
                               strncpy(saida[i],p[i],buffer/sizeof(char));
                }
-               //printf("realocando...\n");
                desaloca_texto(p);
 
                p = saida;
 
                return saida;
-               /*
-               if(i > linhas){
-                              printf("i > linhas\n");
-                              return p;
-               }
-
-               printf("realocando...\n");
-               p = (char **) realloc(p, sizeof(char *) * (linhas+1));
-               if(!p) exibe_erro(MALLOC_ERROR);
-
-               printf("realocando p...\n");
-
-               for(;i<linhas;i++)
-                              p[i] = (char *) malloc(buffer);
-
-               p[i] = NULL;
-
-               return p;*/
-
 
 }
 
 
 char *retorna_argumento (const char *str)
 {
-               /*int inicio = 0, fim = 0;
-               register int i,j;
-               static char saida[BUFFER];
-               for (i = 0; i<strlen(str); i++)
-               {
-                              if(str[i] == '(') inicio = i;
-                              if(str[i] == ')') fim = i;
-               }
-
-               if(!inicio || !fim)return NULL;
-
-               i = inicio +1;
-               for(j = 0; j<(fim - inicio -1); j++)
-               {
-                              saida[j] = str[i];
-                              i++;
-               }
-
-               saida[j] = '\0';
-
-               argumento = saida;
-
-               return saida;*/
-
                static char saida[BUFFER];
                register int i;
 

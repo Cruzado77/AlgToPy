@@ -20,18 +20,6 @@ typedef char **texto;
 
 extern char *argumento;
 
-inline static uint32_t farpeekl (uint16_t sel, void * off)
-{
-               uint32_t ret;
-               asm(
-                   "push %% fs \n\t"
-                   "mov% 1,%% fs \n\t"
-                   "mov %% fs: (% 2),% 0 \n\t"
-                   "pop %% fs"
-                   : "= r" (ret) : "g" (sel), "r" (off)
-                   );
-                   return ret;
-}
 const char funcoes_alg[][BUFFER] = {         //espaco para o strstr
                  "escreval",
                  "escreva",

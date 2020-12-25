@@ -55,7 +55,7 @@ variavel *reconhece_variaveis(texto str,variavel *banco)
                for(i = 0; str[i]; i++)
                {
                               if(!strncmp(str[i],"caracter",BUFFER-1))tipovar = 0;
-                              if(!strncmp(str[i],"inteiro",BUFFER-1))tipovar = 1;
+                              if(!strncmp(str[i],"inteiro",BUFFER-1) || !strncmp(str[i],"logico",BUFFER-1))tipovar = 1;
                               if(!strncmp(str[i],"real",BUFFER-1))tipovar = 2;
                }
 
@@ -65,25 +65,32 @@ variavel *reconhece_variaveis(texto str,variavel *banco)
                               free(str[i-1]);
                }
                str[i-1] = NULL;
+
                for(i = 0;str[i];i++)
                {
 
                               if(encontra_var(str[i],banco)){
-                                             printf("Variavel %s ja declarada!!!!\n",str[i]);
+                                             printf("<<<< !Variavel %s ja declarada! >>>>\n",str[i]);
                                              interrupt =  1;
                                              return NULL;
                               }
-                              if(tipovar == 0){
-                                             id_var(&banco[valor_variaveis],str[i],"str");
-                                             strncat(str[i],"=\"\"; ",BUFFER-1);
-                              }
-                              if(tipovar == 1){
-                                             id_var(&banco[valor_variaveis],str[i],"int");
-                                             strncat(str[i],"=0; ",BUFFER-1);
-                              }
-                              if(tipovar == 2){
-                                             id_var(&banco[valor_variaveis],str[i],"float");
-                                             strncat(str[i],"=0.00; ",BUFFER-1);
+                              else{
+                                             if(tipovar == 0){
+                                                            id_var(&banco[valor_variaveis],str[i],"str");
+                                                            strncat(str[i],"=\"\"; ",BUFFER-1);
+                                             }
+                                             else{
+                                                            if(tipovar == 1){
+                                                                           id_var(&banco[valor_variaveis],str[i],"int");
+                                                                           strncat(str[i],"=0; ",BUFFER-1);
+                                                            }
+                                                            else{
+                                                                           if(tipovar == 2){
+                                                                                          id_var(&banco[valor_variaveis],str[i],"float");
+                                                                                          strncat(str[i],"=0.00; ",BUFFER-1);
+                                                                           }
+                                                            }
+                                             }
                               }
 
                }
@@ -93,11 +100,11 @@ variavel *reconhece_variaveis(texto str,variavel *banco)
 
 int id_var(variavel *var,char *nome,char *tipo)
 {
-               char temp[BUFFER];
+               //char temp[BUFFER];
 
-               snprintf(temp,BUFFER-1,"%c%d",0xf4,valor_variaveis);
+               //snprintf(temp,BUFFER-1,"%c%d",0xf4,valor_variaveis);
 
-               strncpy(var->identificador,temp,BUFFER-1);
+               //strncpy(var->identificador,temp,BUFFER-1);
 
                strncpy(var->nome,nome,BUFFER-1);
                strncpy(var->tipo,tipo,BUFFER-1);
@@ -116,10 +123,10 @@ variavel *encontra_var (const char *str,const variavel *banco)
 
                strdel(nome,"(");
                strdel(nome,")");
+               strdel(nome, " ");
 
                for (i = 0; i <valor_variaveis; i++)
                {
-                              //printf("nome_var : %s tipo : %s\n",banco[i].nome,banco[i].tipo);
                               if(!strncmp(banco[i].nome,nome,BUFFER))break;
                               else continue;
                }

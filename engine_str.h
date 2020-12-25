@@ -83,13 +83,7 @@ char *reconhece_string (char *entrada, strings *banco_strings)
                                                            // printf("%d) string (%s), id (%s), saida (%s)\n",contador-1,banco_strings[contador-1].conteudo,banco_strings[contador-1].identificador,saida);
 
                                                             strtroca(entrada,banco_strings[contador-1].conteudo,banco_strings[contador-1].identificador,-1);
-                                                            //strdel(entrada,saida);
-                                                            //banco_strings = resize_banco_str(banco_strings);
-                                                            //printf("contador = %d\n",contador) ;
-                                                            /*for(int x = 0;x<contador;x++)
-                                                            {
-                                                                           printf("%d) id (%s), conteudo (%s)\n",x,banco_strings[x].identificador,banco_strings[x].conteudo);
-                                                            }*/
+
 
                                                             contador = 0;
                                                             continue;
@@ -103,10 +97,6 @@ char *reconhece_string (char *entrada, strings *banco_strings)
 
                               }
                }
-               //if(contador) return NULL;
-
-
-               //strncpy(entrada, saida,BUFFER);
 
                return saida;
 
@@ -158,16 +148,6 @@ strings *resize_banco_str (strings *banco)
 {
                int i = tam_banco_str();
                strings *s;
-               /*int i = tam_banco_str();
-               strings *s = (strings *) malloc(sizeof(strings) * (num+1));
-
-               for(int j = 0; j<i; j++)s[j] = banco[j];
-               banco = (strings *) realloc(banco, sizeof(strings) * (num+2));
-               if(!banco) exibe_erro(MALLOC_ERROR);
-               //"asdaffff"
-               destroi_banco_str(banco);
-
-               banco = s;*/
 
                s = (strings *) realloc(banco,sizeof(strings[i]));
                if(!s) exibe_erro(MALLOC_ERROR);
